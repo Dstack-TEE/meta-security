@@ -49,6 +49,14 @@ DM_VERITY_SEPARATE_HASH ?= "0"
 # Additional arguments for veritysetup
 DM_VERITY_SETUP_ARGS ?= ""
 
+# Enable reproducible dm-verity images by using fixed salt and UUID
+DM_VERITY_REPRODUCIBLE ?= "1"
+
+# Fixed salt to use for reproducible dm-verity images (when DM_VERITY_REPRODUCIBLE = "1")
+DM_VERITY_FIXED_SALT ?= "5ecc84872ddfd7933784057326c43b2117e0abf68f0c9c32ce770d27d9b1d983"
+
+# Fixed UUID to use for reproducible dm-verity images (when DM_VERITY_REPRODUCIBLE = "1")
+DM_VERITY_FIXED_UUID ?= "8a678132-d493-401d-a0f6-903006c0a5d8"
 # These are arch specific.  We could probably intelligently auto-assign these?
 # Take x86-64 values as defaults. No impact on functionality currently.
 # See SD_GPT_ROOT_X86_64 and SD_GPT_ROOT_X86_64_VERITY in the spec.
@@ -154,6 +162,11 @@ verity_setup() {
         --hash-block-size=${DM_VERITY_IMAGE_HASH_BLOCK_SIZE} \
         $HASH_OFFSET format $OUTPUT $OUTPUT_HASH \
     "
+
+    # Add salt and UUID parameters only if reproducible builds are enabled
+    if [ "${DM_VERITY_REPRODUCIBLE}" = "1" ]; then
+        SETUP_ARGS="--salt=${DM_VERITY_FIXED_SALT} --uuid=${DM_VERITY_FIXED_UUID} $SETUP_ARGS"
+    fi
 
     echo "veritysetup $SETUP_ARGS" > $SAVED_ARGS
 
